@@ -38,7 +38,7 @@ subtractMeanCurve = function(meanModel, inputData){
         obsY = outputData[, "obsY"]
         obsT = outputData[, "obsT"]
         obsFitted = meanModel$modelList$fitSeq(obsT)
-        outputData[selR, "obsY"] = obsY - obsFitted
+        outputData[ , "obsY"] = obsY - obsFitted
     }else{
         eI = 0
         elemID = outputData[,"elemID"]
@@ -93,6 +93,7 @@ fitMeanCurveMultiple = function(tVec, yVec, splineObj, lambda,
     if(length(lambda) == 1){
         lambda = rep(lambda, numElem)
     }else if(length(lambda) != numElem){
+        print(numElem)
         stop("Incorrect dimension of lambda")
     }
     k = 0
@@ -121,6 +122,7 @@ fitMeanCurveSingle = function(tVec, yVec,
     tmax = splineObj$getTMax()
     Omega = splineObj$get_Omega()
     Bmat = splineObj$evalSpline(tVec)
+    Bmat = t(Bmat)
     if(!is.null(ySigma)){
         # Weight row by measurement error
         BmatW = diag(ySigma) %*% Bmat
@@ -138,7 +140,8 @@ fitMeanCurveSingle = function(tVec, yVec,
     residualVec = yVec - Bmat %*% beta
     residualVec = as.vector(residualVec)
     tSeq = seq(tmin, tmax, length.out = 200)
-    ySeq = splineObj$evalSpline(tSeq) %*% beta
+    bMatDense = splineObj$evalSpline(tSeq)
+    ySeq = t(bMatDense) %*% beta
     fitSeq = approxfun(tSeq, ySeq)
     model = list(tmin = tmin, 
                  tmax = tmax,
